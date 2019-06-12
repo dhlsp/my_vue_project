@@ -3,10 +3,19 @@ const path = require('path')
 const utils = require('./utils')
 const config = require('../config')
 const vueLoaderConfig = require('./vue-loader.conf')
+const webpack = require('webpack')
+const os = require('os')
+const HappyPack  = require('happypack')
+const happThreadPool = HappyPack.ThreadPool({size: os.cpus().length}) // 采用多进程，进程数由CPU核数决定
+var CopyWebpackPlugin = require('copy-webpack-plugin')
+// webpack打包分析
+// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
 }
+
+vueLoaderConfig.loaders.js = 'happypack/loader?id=js';
 
 const createLintingRule = () => ({
   test: /\.(js|vue)$/,
@@ -22,7 +31,7 @@ const createLintingRule = () => ({
 module.exports = {
   context: path.resolve(__dirname, '../'),
   entry: {
-    app: './src/main.js'
+    app: ['babel-polyfill', './src/main.js']
   },
   output: {
     path: config.build.assetsRoot,
@@ -36,6 +45,14 @@ module.exports = {
     alias: {
       'vue$': 'vue/dist/vue.esm.js',
       '@': resolve('src'),
+      '@views': resolve('src/views'),
+      '@components': resolve('src/components'),
+      '@store': resolve('src/store'),
+      '@router': resolve('src/router'),
+      '@js': resolve('src/assets/js'),
+      '@lang': resolve('src/lang'),
+      '@filters': resolve('src/filters'),
+      '@config': resolve('src/config'),
     }
   },
   module: {
@@ -52,8 +69,17 @@ module.exports = {
         include: [resolve('src'), resolve('test'), resolve('node_modules/webpack-dev-server/client')]
       },
       {
+        test: /\.svg$/,
+        loader: 'svg-sprite-loader',
+        include: [resolve('src/icons')],
+        options: {
+          symbolId: 'icon-[name]'
+        }
+      },
+      {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
         loader: 'url-loader',
+        exclude: [resolve('src/icons')],
         options: {
           limit: 10000,
           name: utils.assetsPath('img/[name].[hash:7].[ext]')
@@ -88,5 +114,37 @@ module.exports = {
     net: 'empty',
     tls: 'empty',
     child_process: 'empty'
-  }
+  },
+  plugins: [
+    new webpack.DllReferencePlugin({
+      context: path.resolve(__dirname, '..'),
+      manifest: require('./vendor-manifest.json')
+    }),
+    new HappyPack({
+      id: 'js',
+      cache: true,
+      loaders: ['babel-loader?cacheDirectory=true'],
+      threadPool: happThreadPool
+    }),
+    new CopyWebpackPlugin([
+      {
+        from: path.resolve(__dirname, '../static'),
+        to: config.build.assetsSubDirectory,
+        ignore: ['.*']
+      }
+    ]),
+    // new webpack.optimize.ModuleConcatenationPlugin()
+    // new BundleAnalyzerPlugin({
+    //   analyzerMode: 'server',
+    //   analyzerHost: '127.0.0.1',
+    //   analyzerPort: 8889,
+    //   reportFilename: 'report.html',
+    //   defaultSizes: 'parsed',
+    //   openAnalyzer: true,
+    //   generateStatsFile: false,
+    //   statsFilename: 'stats.json',
+    //   statsOptions: null,
+    //   logLevel: 'info'
+    // })
+  ]
 }
