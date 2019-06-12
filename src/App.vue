@@ -8,6 +8,11 @@
 <script>
 export default {
   name: 'App',
+  watch: {
+    isEn() {
+      document.title = this.$t('title');
+    },
+  },
 };
 </script>
 

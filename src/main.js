@@ -9,6 +9,9 @@ import App from './App';
 import router from './router';
 import './components'; // 自定义组件
 import './icons'; // 注册svg-icon组件
+import i18n from './lang'; // 多语言
+import './mixins'; // mixin
+import store from './store';
 
 Vue.config.productionTip = false;
 
@@ -16,6 +19,8 @@ Vue.config.productionTip = false;
 new Vue({
   el: '#app',
   router,
+  store,
+  i18n,
   components: { App },
   template: '<App/>',
 });
