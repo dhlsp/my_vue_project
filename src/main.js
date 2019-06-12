@@ -8,6 +8,7 @@ import './config/elementui'; // 自定义element-ui组件
 import App from './App';
 import router from './router';
 import './components'; // 自定义组件
+import './icons'; // 注册svg-icon组件
 
 Vue.config.productionTip = false;
 
