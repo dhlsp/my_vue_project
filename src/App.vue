@@ -13,6 +13,10 @@ export default {
       document.title = this.$t('title');
     },
   },
+  mounted() {
+    document.title = this.$t('title');
+    document.getElementsByClassName('first-loading')[0].style.display = 'none';
+  },
 };
 </script>
 
